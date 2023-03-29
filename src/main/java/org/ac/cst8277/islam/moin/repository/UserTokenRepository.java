@@ -6,4 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 public interface UserTokenRepository extends MongoRepository<UserToken,String> {
 
     UserToken getByUserId(String userId);
+
+    UserToken findByToken(String token);
+
 }

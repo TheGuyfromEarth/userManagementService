@@ -14,6 +14,22 @@ public class UserTokenService {
     public void saveToken(UserToken userToken){
         userTokenRepository.save(userToken);
     }
+    public void deleteToken(UserToken userToken){
+        userTokenRepository.save(userToken);
+    }
+
+
+    public UserToken findByToken(String token)
+    {
+        UserToken userToken = userTokenRepository.findByToken(token);
+        if(userToken != null){
+            return userToken;
+        }
+        return null;
+
+    }
+
+
 
     public String getTokenById(String uid){
         UserToken userToken = userTokenRepository.getByUserId(uid);

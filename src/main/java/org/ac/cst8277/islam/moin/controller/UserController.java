@@ -21,6 +21,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -49,11 +51,33 @@ public class UserController {
         User user = userService.getByUserName(authRequest.getUsername());
         Util.userLogMap.put(user.getUserId(), Boolean.TRUE);
         String token = Util.generateTokenUUID();
-        UserToken userToken = new UserToken(user.getUserId(), token);
+        UserToken userToken = new UserToken(user.getUserId(), token, LocalDateTime.now());
         if (userTokenService.getTokenById(user.getUserId()) == null) {
             userTokenService.saveToken(userToken);
         }
         return token;
+    }
+
+
+    @GetMapping("/authorisation")
+    public boolean getValidityofToken(@RequestParam String token)
+    {
+        //check if it is present in db and if the token created is less than 15 minutes and return true/fllase
+        //if token validity is false, delete it from db
+        UserToken returntype=userTokenService.findByToken(token);
+        System.out.println(returntype.getlastAddedDate());
+        Duration duration = Duration.between(returntype.getlastAddedDate(), LocalDateTime.now());
+        if(returntype==null || duration.toMinutes()>=15)
+        {
+            return false;
+        }
+        if(duration.toMinutes()>=15)
+        {
+            userTokenService.deleteToken(returntype);
+        }
+        return true;
+
+
     }
 
 
@@ -88,7 +112,17 @@ public class UserController {
     }
 
     @GetMapping("/check-login")
-    public Boolean checkUserLogin(@RequestParam String userId) {
-        return Util.userLogMap.get(userId);
+    public Boolean checkUserLogin(@RequestParam String token) {
+        UserToken returntype=userTokenService.findByToken(token);
+        Duration duration = Duration.between(returntype.getlastAddedDate(), LocalDateTime.now());
+        if(returntype==null || duration.toMinutes()>=15)
+        {
+            return false;
+        }
+        if(duration.toMinutes()>=15)
+        {
+            userTokenService.deleteToken(returntype);
+        }
+        return true;
     }
 }
